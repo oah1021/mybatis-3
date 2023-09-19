@@ -36,27 +36,43 @@ public class MetaClass {
 
   private MetaClass(Class<?> type, ReflectorFactory reflectorFactory) {
     this.reflectorFactory = reflectorFactory;
+    // 获取指定类的 Reflector 对象
     this.reflector = reflectorFactory.findForClass(type);
   }
 
   public static MetaClass forClass(Class<?> type, ReflectorFactory reflectorFactory) {
+    // 创建指定类的 MetaClass 对象
     return new MetaClass(type, reflectorFactory);
   }
 
   public MetaClass metaClassForProperty(String name) {
+    // 获取属性的类型Class
     Class<?> propType = reflector.getGetterType(name);
+    // 创建对应的 MetaClass
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
+  /**
+   * 查找给定名称的属性
+   * @param name
+   * @return
+   */
   public String findProperty(String name) {
     StringBuilder prop = buildProperty(name, new StringBuilder());
     return prop.length() > 0 ? prop.toString() : null;
   }
 
+  /**
+   *
+   * @param name
+   * @param useCamelCaseMapping 是否使用驼峰映射
+   * @return
+   */
   public String findProperty(String name, boolean useCamelCaseMapping) {
     if (useCamelCaseMapping) {
       name = name.replace("_", "");
     }
+    // 不使用驼峰映射，直接查找
     return findProperty(name);
   }
 
@@ -69,11 +85,16 @@ public class MetaClass {
   }
 
   public Class<?> getSetterType(String name) {
+    // 分词
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    // 如果存在下一个
     if (prop.hasNext()) {
+      // 创建对应的 元类
       MetaClass metaProp = metaClassForProperty(prop.getName());
+      // 递归调用
       return metaProp.getSetterType(prop.getChildren());
     }
+    // 不存在下一个，直接返回
     return reflector.getSetterType(prop.getName());
   }
 
@@ -92,17 +113,32 @@ public class MetaClass {
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
+  /**
+   * 获取属性对应的 getter 方法的返回值类型。
+   * @param prop 属性标记器
+   * @return getter 方法的返回值类型
+   */
   private Class<?> getGetterType(PropertyTokenizer prop) {
+    // 获取 属性对应 getter 方法的返回值类型
     Class<?> type = reflector.getGetterType(prop.getName());
+    // 如果属性存在索引并且返回值类型是集合
     if (prop.getIndex() != null && Collection.class.isAssignableFrom(type)) {
+      // 获取属性对应的getter 方法的返回类型
       Type returnType = getGenericGetterType(prop.getName());
+      // 如果是参数化类型
       if (returnType instanceof ParameterizedType) {
+        // 返回参数类型数组
         Type[] actualTypeArguments = ((ParameterizedType) returnType).getActualTypeArguments();
+        // 如果参数类型数组不为空 且只有一个参数
         if (actualTypeArguments != null && actualTypeArguments.length == 1) {
+          // 获取第一个参数的类型
           returnType = actualTypeArguments[0];
+          // 如果类型是 Class
           if (returnType instanceof Class) {
+            // 强转并赋值给 type
             type = (Class<?>) returnType;
           } else if (returnType instanceof ParameterizedType) {
+            // 如果类型是参数化类型，则取得其原始类型
             type = (Class<?>) ((ParameterizedType) returnType).getRawType();
           }
         }
@@ -113,17 +149,22 @@ public class MetaClass {
 
   private Type getGenericGetterType(String propertyName) {
     try {
+      // 获取属性对应的 getter 方法
       Invoker invoker = reflector.getGetInvoker(propertyName);
+      // 说明是通过方法获取值
       if (invoker instanceof MethodInvoker) {
         Field declaredMethod = MethodInvoker.class.getDeclaredField("method");
         declaredMethod.setAccessible(true);
         Method method = (Method) declaredMethod.get(invoker);
+        // 解析方法的返回类型并返回结果
         return TypeParameterResolver.resolveReturnType(method, reflector.getType());
       }
+      // 通过字段获取值
       if (invoker instanceof GetFieldInvoker) {
         Field declaredField = GetFieldInvoker.class.getDeclaredField("field");
         declaredField.setAccessible(true);
         Field field = (Field) declaredField.get(invoker);
+        // 解析字段的类型并返回结果
         return TypeParameterResolver.resolveFieldType(field, reflector.getType());
       }
     } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -146,14 +187,18 @@ public class MetaClass {
   }
 
   public boolean hasGetter(String name) {
+    // 分词
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    // 没有下一个分词，说明是最后一个属性名
     if (!prop.hasNext()) {
       return reflector.hasGetter(prop.getName());
     }
+    // 递归判断剩余属性是否存在 Getter 方法
     if (reflector.hasGetter(prop.getName())) {
       MetaClass metaProp = metaClassForProperty(prop);
       return metaProp.hasGetter(prop.getChildren());
     } else {
+      // 不存在，返回false
       return false;
     }
   }
@@ -167,21 +212,31 @@ public class MetaClass {
   }
 
   private StringBuilder buildProperty(String name, StringBuilder builder) {
+    // 使用分词器进行分词
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    // 如果有子属性
     if (prop.hasNext()) {
+      // 获取 属性名称
       String propertyName = reflector.findPropertyName(prop.getName());
+      // 如果 属性名称不为 null
       if (propertyName != null) {
         builder.append(propertyName);
         builder.append(".");
+        // 根据属性创建属性的 MetaClass 对象
         MetaClass metaProp = metaClassForProperty(propertyName);
+        // 递归调用 当前元类的 buildProperty 继续构建子属性的名称
         metaProp.buildProperty(prop.getChildren(), builder);
       }
     } else {
+      // 没有子属性
+      // 获取属性名称
       String propertyName = reflector.findPropertyName(name);
+      // 如果属性名称不为 null
       if (propertyName != null) {
         builder.append(propertyName);
       }
     }
+    // 返回构建好的属性名称
     return builder;
   }
 

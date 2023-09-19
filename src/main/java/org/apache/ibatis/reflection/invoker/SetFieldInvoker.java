@@ -32,12 +32,16 @@ public class SetFieldInvoker implements Invoker {
   @Override
   public Object invoke(Object target, Object[] args) throws IllegalAccessException {
     try {
+      // 设置字段的值
       field.set(target, args[0]);
     } catch (IllegalAccessException e) {
+      // 如果不能控制成员的可访问性，直接抛出异常
       if (!Reflector.canControlMemberAccessible()) {
         throw e;
       }
+      // 设置可访问性
       field.setAccessible(true);
+      // 再次尝试设置字段的值
       field.set(target, args[0]);
     }
     return null;
@@ -45,6 +49,7 @@ public class SetFieldInvoker implements Invoker {
 
   @Override
   public Class<?> getType() {
+    // 返回字段的类型
     return field.getType();
   }
 }

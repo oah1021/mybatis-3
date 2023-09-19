@@ -187,6 +187,7 @@ public class Resources {
    */
   public static Reader getResourceAsReader(String resource) throws IOException {
     Reader reader;
+    // 如果字符集 == null
     if (charset == null) {
       reader = new InputStreamReader(getResourceAsStream(resource));
     } else {

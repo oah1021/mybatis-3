@@ -45,11 +45,25 @@ import org.xml.sax.SAXParseException;
  * @author Kazuki Shimizu
  */
 public class XPathParser {
-
+  /**
+   * XML Document 对象
+   */
   private final Document document;
+  /**
+   * 是否校验
+   */
   private boolean validation;
+  /**
+   * XML 实体解析器
+   */
   private EntityResolver entityResolver;
+  /**
+   * 变量 Properties 对象
+   */
   private Properties variables;
+  /**
+   * Java XPath 对象
+   */
   private XPath xpath;
 
   public XPathParser(String xml) {
@@ -141,7 +155,9 @@ public class XPathParser {
   }
 
   public String evalString(Object root, String expression) {
+    // 获取指定元素的值
     String result = (String) evaluate(expression, root, XPathConstants.STRING);
+    // 如果获取的结果为动态值，则使用 variables 替换其动态部分
     return PropertyParser.parse(result, variables);
   }
 
@@ -199,8 +215,10 @@ public class XPathParser {
 
   public List<XNode> evalNodes(Object root, String expression) {
     List<XNode> xnodes = new ArrayList<>();
+    // 调用 evaluate 方法，根据 XPath 表达式获取符合条件的节点列表
     NodeList nodes = (NodeList) evaluate(expression, root, XPathConstants.NODESET);
     for (int i = 0; i < nodes.getLength(); i++) {
+      // 将每个节点转化为 XNode 对象，并将其添加到列表中
       xnodes.add(new XNode(this, nodes.item(i), variables));
     }
     return xnodes;
@@ -218,6 +236,13 @@ public class XPathParser {
     return new XNode(this, node, variables);
   }
 
+  /**
+   * 获取指定元素或节点的值
+   * @param expression
+   * @param root
+   * @param returnType
+   * @return
+   */
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
       return xpath.evaluate(expression, root, returnType);
@@ -226,21 +251,31 @@ public class XPathParser {
     }
   }
 
+  /**
+   * 创建 Document 对象
+   * @param inputSource
+   * @return
+   */
   private Document createDocument(InputSource inputSource) {
     // important: this must only be called AFTER common constructor
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      // 设置是否验证 XML
       factory.setValidating(validation);
 
       factory.setNamespaceAware(false);
+      // 设置是否忽略注释
       factory.setIgnoringComments(true);
+      // 设置是否忽略元素内容中的空白字符
       factory.setIgnoringElementContentWhitespace(false);
       factory.setCoalescing(false);
       factory.setExpandEntityReferences(true);
 
       DocumentBuilder builder = factory.newDocumentBuilder();
+      // 设置实体解析器
       builder.setEntityResolver(entityResolver);
+      // 设置错误处理器
       builder.setErrorHandler(new ErrorHandler() {
         @Override
         public void error(SAXParseException exception) throws SAXException {
@@ -267,6 +302,7 @@ public class XPathParser {
     this.validation = validation;
     this.entityResolver = entityResolver;
     this.variables = variables;
+    // 创建 XPathFactory 对象
     XPathFactory factory = XPathFactory.newInstance();
     this.xpath = factory.newXPath();
   }

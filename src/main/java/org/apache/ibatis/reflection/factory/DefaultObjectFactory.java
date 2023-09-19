@@ -48,32 +48,45 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
   @SuppressWarnings("unchecked")
   @Override
   public <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
+    // 获取需要创建的类
     Class<?> classToCreate = resolveInterface(type);
     // we know types are assignable
+    // 创建指定类的对象
     return (T) instantiateClass(classToCreate, constructorArgTypes, constructorArgs);
   }
 
   private <T> T instantiateClass(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     try {
       Constructor<T> constructor;
+      // 如果参数类型为空 或者 参数为空
       if (constructorArgTypes == null || constructorArgs == null) {
+        // 直接使用空构造函数
         constructor = type.getDeclaredConstructor();
         try {
+          // 返回构造的实例
           return constructor.newInstance();
         } catch (IllegalAccessException e) {
+          // 检查是否可以控制成员可访问性
           if (Reflector.canControlMemberAccessible()) {
+            // 设置可访问性
             constructor.setAccessible(true);
+            // 再次尝试返回构造函数的实例
             return constructor.newInstance();
           }
           throw e;
         }
       }
+      // 获取指定参数类型的构造函数
       constructor = type.getDeclaredConstructor(constructorArgTypes.toArray(new Class[0]));
       try {
+        // 直接返回构造函数的实例
         return constructor.newInstance(constructorArgs.toArray(new Object[0]));
       } catch (IllegalAccessException e) {
+        // 检查是否可以控制成员可访问性
         if (Reflector.canControlMemberAccessible()) {
+          // 设置可访问性
           constructor.setAccessible(true);
+          // 再次尝试返回构造函数的实例
           return constructor.newInstance(constructorArgs.toArray(new Object[0]));
         }
         throw e;
@@ -90,15 +103,27 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
 
   protected Class<?> resolveInterface(Class<?> type) {
     Class<?> classToCreate;
+    // 如果 type 是 List、Collection 或 Iterable 接口
     if (type == List.class || type == Collection.class || type == Iterable.class) {
+      // 返回 ArrayList 类作为实现类
       classToCreate = ArrayList.class;
-    } else if (type == Map.class) {
+    }
+    // 如果 type 是 Map 接口
+    else if (type == Map.class) {
+      // 返回 HashMap 类作为实现类
       classToCreate = HashMap.class;
-    } else if (type == SortedSet.class) { // issue #510 Collections Support
+    }
+    // 如果 type 是 SortedSet 接口
+    else if (type == SortedSet.class) { // issue #510 Collections Support
+      // 返回 TreeSet 类作为实现类
       classToCreate = TreeSet.class;
-    } else if (type == Set.class) {
+    }
+    // 如果 type 是 Set 接口
+    else if (type == Set.class) {
+      // 返回 HashSet 类作为实现类
       classToCreate = HashSet.class;
     } else {
+      // 对于其他类型的接口，直接返回原始的 type 类型
       classToCreate = type;
     }
     return classToCreate;
@@ -106,6 +131,7 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
 
   @Override
   public <T> boolean isCollection(Class<T> type) {
+    // 是否是指定类的超类或超接口
     return Collection.class.isAssignableFrom(type);
   }
 

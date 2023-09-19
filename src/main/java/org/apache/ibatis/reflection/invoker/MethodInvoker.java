@@ -30,21 +30,35 @@ public class MethodInvoker implements Invoker {
 
   public MethodInvoker(Method method) {
     this.method = method;
-
+    // 参数大小为 1 时，一般是 setting 方法，设置 type 为方法参数[0]
     if (method.getParameterTypes().length == 1) {
+      // 获取其参数的类型
       type = method.getParameterTypes()[0];
     } else {
+      // 否则，一般是 getting 方法，设置 type 为返回类型
       type = method.getReturnType();
     }
   }
 
+  /**
+   * 执行指定方法
+   * @param target 方法
+   * @param args 方法参数
+   * @return
+   * @throws IllegalAccessException
+   * @throws InvocationTargetException
+   */
   @Override
   public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
     try {
+      // 直接调用目标方法
       return method.invoke(target, args);
     } catch (IllegalAccessException e) {
+      // 检查是否可以控制成员可访问性，如果可以控制
       if (Reflector.canControlMemberAccessible()) {
+        // 设置可访问性
         method.setAccessible(true);
+        // 再次尝试调用
         return method.invoke(target, args);
       }
       throw e;

@@ -71,7 +71,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public XMLConfigBuilder(Class<? extends Configuration> configClass, Reader reader, String environment,
-      Properties props) {
+                          Properties props) {
     this(configClass, new XPathParser(reader, true, props, new XMLMapperEntityResolver()), environment, props);
   }
 
@@ -88,12 +88,12 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public XMLConfigBuilder(Class<? extends Configuration> configClass, InputStream inputStream, String environment,
-      Properties props) {
+                          Properties props) {
     this(configClass, new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()), environment, props);
   }
 
   private XMLConfigBuilder(Class<? extends Configuration> configClass, XPathParser parser, String environment,
-      Properties props) {
+                           Properties props) {
     super(newConfig(configClass));
     ErrorContext.instance().resource("SQL Mapper Configuration");
     this.configuration.setVariables(props);
@@ -103,33 +103,52 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public Configuration parse() {
+    // parsed 默认为 false， 判断是否已经解析过该配置文件
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
+    // 设置为 true，标识该配置文件已经解析过一次
     parsed = true;
+    // 解析 XML 配置文件中的 <configuration> 节点
     parseConfiguration(parser.evalNode("/configuration"));
+    // 返回解析后的 Configuration 对象
     return configuration;
   }
 
   private void parseConfiguration(XNode root) {
     try {
       // issue #117 read properties first
+      // 解析 properties 元素，加载配置文件中定义的属性值到 Configuration 对象中
       propertiesElement(root.evalNode("properties"));
+      // 将 settings 元素解析成 Properties 对象，并加载到 Configuration 对象中
       Properties settings = settingsAsProperties(root.evalNode("settings"));
+      // 加载自定义的 VFS 实现类
       loadCustomVfs(settings);
+      // 加载自定义的 Log 实现类
       loadCustomLogImpl(settings);
+      // 解析 typeAliases 元素，将别名信息加入 Configuration 对象中
       typeAliasesElement(root.evalNode("typeAliases"));
+      // 解析 plugins 元素，将插件信息加入 Configuration 对象中
       pluginElement(root.evalNode("plugins"));
+      // 解析 objectFactory 元素，将对象工厂信息加入 Configuration 对象中
       objectFactoryElement(root.evalNode("objectFactory"));
+      // 解析 objectWrapperFactory 元素，将对象包装工厂信息加入 Configuration 对象中
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      // 解析 reflectorFactory 元素，将对象反射工厂信息加入 Configuration 对象中
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      // 解析 settings 元素，将全局配置信息加入 Configuration 对象中
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+      // 解析 environments 元素，将数据源信息加入 Configuration 对象中
       environmentsElement(root.evalNode("environments"));
+      // 解析 databaseIdProvider 元素，将数据库厂商标识信息加入 Configuration 对象中
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      // 解析 typeHandlers 元素，将类型处理器信息加入 Configuration 对象中
       typeHandlerElement(root.evalNode("typeHandlers"));
+      // 解析 mappers 元素，将 Mapper 映射器信息加入 Configuration 对象中
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
+      // 配置文件解析出现错误，抛出异常
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
     }
   }
@@ -144,7 +163,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
         throw new BuilderException(
-            "The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
+          "The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
       }
     }
     return props;
@@ -199,7 +218,7 @@ public class XMLConfigBuilder extends BaseBuilder {
         String interceptor = child.getStringAttribute("interceptor");
         Properties properties = child.getChildrenAsProperties();
         Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).getDeclaredConstructor()
-            .newInstance();
+          .newInstance();
         interceptorInstance.setProperties(properties);
         configuration.addInterceptor(interceptorInstance);
       }
@@ -239,7 +258,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       String url = context.getStringAttribute("url");
       if (resource != null && url != null) {
         throw new BuilderException(
-            "The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
+          "The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
       if (resource != null) {
         defaults.putAll(Resources.getResourceAsProperties(resource));
@@ -257,9 +276,9 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void settingsElement(Properties props) {
     configuration
-        .setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
+      .setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(
-        AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
+      AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
     configuration.setCacheEnabled(booleanValueOf(props.getProperty("cacheEnabled"), true));
     configuration.setProxyFactory((ProxyFactory) createInstance(props.getProperty("proxyFactory")));
     configuration.setLazyLoadingEnabled(booleanValueOf(props.getProperty("lazyLoadingEnabled"), false));
@@ -276,7 +295,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setLocalCacheScope(LocalCacheScope.valueOf(props.getProperty("localCacheScope", "SESSION")));
     configuration.setJdbcTypeForNull(JdbcType.valueOf(props.getProperty("jdbcTypeForNull", "OTHER")));
     configuration.setLazyLoadTriggerMethods(
-        stringSetValueOf(props.getProperty("lazyLoadTriggerMethods"), "equals,clone,hashCode,toString"));
+      stringSetValueOf(props.getProperty("lazyLoadTriggerMethods"), "equals,clone,hashCode,toString"));
     configuration.setSafeResultHandlerEnabled(booleanValueOf(props.getProperty("safeResultHandlerEnabled"), true));
     configuration.setDefaultScriptingLanguage(resolveClass(props.getProperty("defaultScriptingLanguage")));
     configuration.setDefaultEnumTypeHandler(resolveClass(props.getProperty("defaultEnumTypeHandler")));
@@ -287,7 +306,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setConfigurationFactory(resolveClass(props.getProperty("configurationFactory")));
     configuration.setShrinkWhitespacesInSql(booleanValueOf(props.getProperty("shrinkWhitespacesInSql"), false));
     configuration.setArgNameBasedConstructorAutoMapping(
-        booleanValueOf(props.getProperty("argNameBasedConstructorAutoMapping"), false));
+      booleanValueOf(props.getProperty("argNameBasedConstructorAutoMapping"), false));
     configuration.setDefaultSqlProviderType(resolveClass(props.getProperty("defaultSqlProviderType")));
     configuration.setNullableOnForEach(booleanValueOf(props.getProperty("nullableOnForEach"), false));
   }
@@ -304,7 +323,7 @@ public class XMLConfigBuilder extends BaseBuilder {
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
           DataSource dataSource = dsFactory.getDataSource();
           Environment.Builder environmentBuilder = new Environment.Builder(id).transactionFactory(txFactory)
-              .dataSource(dataSource);
+            .dataSource(dataSource);
           configuration.setEnvironment(environmentBuilder.build());
           break;
         }
@@ -382,34 +401,36 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
+      // 遍历 <mappers> 下的所有子节点
       for (XNode child : parent.getChildren()) {
+        // 解析 package 节点
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
-        } else {
+        } else { // 解析 resource、url 或 class 节点
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
-          if (resource != null && url == null && mapperClass == null) {
+          if (resource != null && url == null && mapperClass == null) { // 解析 resource 节点
             ErrorContext.instance().resource(resource);
             try (InputStream inputStream = Resources.getResourceAsStream(resource)) {
               XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource,
-                  configuration.getSqlFragments());
+                configuration.getSqlFragments());
               mapperParser.parse();
             }
-          } else if (resource == null && url != null && mapperClass == null) {
+          } else if (resource == null && url != null && mapperClass == null) { // 解析 url 节点
             ErrorContext.instance().resource(url);
             try (InputStream inputStream = Resources.getUrlAsStream(url)) {
               XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url,
-                  configuration.getSqlFragments());
+                configuration.getSqlFragments());
               mapperParser.parse();
             }
-          } else if (resource == null && url == null && mapperClass != null) {
+          } else if (resource == null && url == null && mapperClass != null) { // 解析 class 节点
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
           } else {
             throw new BuilderException(
-                "A mapper element may only specify a url, resource or class, but not more than one.");
+              "A mapper element may only specify a url, resource or class, but not more than one.");
           }
         }
       }

@@ -37,15 +37,19 @@ public class BeanWrapper extends BaseWrapper {
   public BeanWrapper(MetaObject metaObject, Object object) {
     super(metaObject);
     this.object = object;
+    // 创建 MetaClass 对象
     this.metaClass = MetaClass.forClass(object.getClass(), metaObject.getReflectorFactory());
   }
 
   @Override
   public Object get(PropertyTokenizer prop) {
+    // 如果存在索引，说明是集合
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, object);
+      // 获取指定位置的值
       return getCollectionValue(prop, collection);
     }
+    // 获取属性的值
     return getBeanProperty(prop, object);
   }
 
@@ -90,14 +94,20 @@ public class BeanWrapper extends BaseWrapper {
 
   @Override
   public Class<?> getGetterType(String name) {
+    // 分词
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    // 如果不存在下一个
     if (!prop.hasNext()) {
+      // 获取其getter 的返回类型
       return metaClass.getGetterType(name);
     }
+    // 创建 MetaObject 对象
     MetaObject metaValue = metaObject.metaObjectForProperty(prop.getIndexedName());
+    // 如果为空，则基于 metaClass 获取返回值的类型
     if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
       return metaClass.getGetterType(name);
     } else {
+      // 不为空，基于metaValue 获取返回值类型
       return metaValue.getGetterType(prop.getChildren());
     }
   }
@@ -120,32 +130,47 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
+  /**
+   * 判断指定名称的属性是否具有对应的getter方法。
+   *
+   * @param name 属性的名称
+   * @return 如果属性具有对应的getter方法，则返回true；否则返回false。
+   */
   @Override
   public boolean hasGetter(String name) {
+    // 分词
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    // 如果不存在下一个
     if (!prop.hasNext()) {
       return metaClass.hasGetter(name);
     }
+    // 检查元类是否有对应的getter方法
     if (metaClass.hasGetter(prop.getIndexedName())) {
       MetaObject metaValue = metaObject.metaObjectForProperty(prop.getIndexedName());
+      // 如果元对象为空，则检查元类是否有对应的getter方法
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
         return metaClass.hasGetter(name);
       } else {
+        // 检查元对象的getter方法是否存在
         return metaValue.hasGetter(prop.getChildren());
       }
     } else {
+      // 如果元类没有对应的getter方法，则返回false
       return false;
     }
   }
 
+
   @Override
   public MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory) {
     MetaObject metaValue;
+    // 通过调用getSetterType方法获取属性的类型
     Class<?> type = getSetterType(prop.getName());
     try {
       Object newObject = objectFactory.create(type);
       metaValue = MetaObject.forObject(newObject, metaObject.getObjectFactory(), metaObject.getObjectWrapperFactory(),
           metaObject.getReflectorFactory());
+      // 使用set方法将新创建的对象设置为属性的值
       set(prop, newObject);
     } catch (Exception e) {
       throw new ReflectionException("Cannot set value of property '" + name + "' because '" + name
@@ -156,8 +181,10 @@ public class BeanWrapper extends BaseWrapper {
 
   private Object getBeanProperty(PropertyTokenizer prop, Object object) {
     try {
+      // 获取指定属性的getter 方法
       Invoker method = metaClass.getGetInvoker(prop.getName());
       try {
+        // 执行 getter 方法
         return method.invoke(object, NO_ARGUMENTS);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);
@@ -172,9 +199,12 @@ public class BeanWrapper extends BaseWrapper {
 
   private void setBeanProperty(PropertyTokenizer prop, Object object, Object value) {
     try {
+      // 获取属性的 setter方法
       Invoker method = metaClass.getSetInvoker(prop.getName());
+      // 传入的参数
       Object[] params = { value };
       try {
+        // 调用其方法
         method.invoke(object, params);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);

@@ -96,9 +96,13 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   public void parse() {
+    // 判断当前资源是否已加载，避免重复解析
     if (!configuration.isResourceLoaded(resource)) {
+      // 解析 <mapper> 节点
       configurationElement(parser.evalNode("/mapper"));
+      // 标记该资源已加载
       configuration.addLoadedResource(resource);
+      // 将 Mapper 接口和命名空间进行绑定
       bindMapperForNamespace();
     }
 
@@ -113,16 +117,20 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void configurationElement(XNode context) {
     try {
+      // 获取命名空间属性
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.isEmpty()) {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
+      // 设置当前命名空间
       builderAssistant.setCurrentNamespace(namespace);
       cacheRefElement(context.evalNode("cache-ref"));
       cacheElement(context.evalNode("cache"));
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      // 解析 sql 节点
       sqlElement(context.evalNodes("/mapper/sql"));
+      // 解析 select、insert、update、delete 节点，并构建 MappedStatement 对象
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);

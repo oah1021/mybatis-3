@@ -21,6 +21,14 @@ import java.lang.reflect.InvocationTargetException;
  * @author Clinton Begin
  */
 public interface Invoker {
+  /**
+   * 执行方法的调用
+   * @param target 方法
+   * @param args 方法参数
+   * @return
+   * @throws IllegalAccessException
+   * @throws InvocationTargetException
+   */
   Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException;
 
   Class<?> getType();

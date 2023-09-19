@@ -44,6 +44,7 @@ class TypeParameterResolverTest {
   void testReturn_Lv0SimpleClass() throws Exception {
     Class<?> clazz = Level0Mapper.class;
     Method method = clazz.getMethod("simpleSelect");
+    // 获取方法的返回类型
     Type result = TypeParameterResolver.resolveReturnType(method, clazz);
     assertEquals(Double.class, result);
   }

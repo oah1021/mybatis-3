@@ -53,8 +53,11 @@ public class PropertyParser {
   }
 
   public static String parse(String string, Properties variables) {
+    // 创建 VariableTokenHandler 对象，传入 variables，用于处理占位符替换
     VariableTokenHandler handler = new VariableTokenHandler(variables);
+    // 创建 GenericTokenParser 对象，指定占位符的起始标记和结束标记，并传入 VariableTokenHandler 对象
     GenericTokenParser parser = new GenericTokenParser("${", "}", handler);
+    // 调用 GenericTokenParser 的 parse 方法，对字符串进行占位符替换
     return parser.parse(string);
   }
 

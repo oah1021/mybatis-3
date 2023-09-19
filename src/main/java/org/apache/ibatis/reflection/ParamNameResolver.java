@@ -55,19 +55,27 @@ public class ParamNameResolver {
   private boolean hasParamAnnotation;
 
   public ParamNameResolver(Configuration config, Method method) {
+    // 是否使用实际参数名称
     this.useActualParamName = config.isUseActualParamName();
+    // 获取方法的参数类型数组
     final Class<?>[] paramTypes = method.getParameterTypes();
+    // 获取方法的参数注解 数组
     final Annotation[][] paramAnnotations = method.getParameterAnnotations();
+    // 构造一个有序Map,用于存储参数索引和对应的参数名称
     final SortedMap<Integer, String> map = new TreeMap<>();
+    // 参数注解数组的长度
     int paramCount = paramAnnotations.length;
     // get names from @Param annotations
     for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
+      // 跳过特殊参数
       if (isSpecialParameter(paramTypes[paramIndex])) {
         // skip special parameters
         continue;
       }
       String name = null;
+      // 遍历当前参数的注解
       for (Annotation annotation : paramAnnotations[paramIndex]) {
+        // 如果注解是@Param类型，则获取参数名称
         if (annotation instanceof Param) {
           hasParamAnnotation = true;
           name = ((Param) annotation).value();
@@ -76,17 +84,22 @@ public class ParamNameResolver {
       }
       if (name == null) {
         // @Param was not specified.
+        // 如果注解中没有指定参数名称，且需要使用实际参数名称
         if (useActualParamName) {
+          // 调用getActualParamName方法获取实际参数名称
           name = getActualParamName(method, paramIndex);
         }
         if (name == null) {
           // use the parameter index as the name ("0", "1", ...)
+          // 如果仍然没有获取到参数名称，则使用参数索引作为名称（如："0", "1", ...）
           // gcode issue #71
           name = String.valueOf(map.size());
         }
       }
+      // 将参数索引和名称存入有序Map中
       map.put(paramIndex, name);
     }
+    // 将有序Map设置为不可修改的，并赋值给names属性
     names = Collections.unmodifiableSortedMap(map);
   }
 

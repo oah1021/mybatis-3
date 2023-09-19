@@ -68,6 +68,7 @@ class MetaClassTest {
     assertTrue(meta.hasGetter("richType.richList[0]"));
 
     assertEquals("richType.richProperty", meta.findProperty("richType.richProperty", false));
+    assertEquals("richType.richProperty", meta.findProperty("richType.rich_property", true));
 
     assertFalse(meta.hasGetter("[0]"));
   }

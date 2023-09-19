@@ -112,6 +112,9 @@ public class Configuration {
   protected boolean useColumnLabel = true;
   protected boolean cacheEnabled = true;
   protected boolean callSettersOnNulls;
+  /**
+   * 是否使用实际参数名称
+   */
   protected boolean useActualParamName = true;
   protected boolean returnInstanceForEmptyRow;
   protected boolean shrinkWhitespacesInSql;

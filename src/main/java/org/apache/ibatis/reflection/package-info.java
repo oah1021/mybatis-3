@@ -15,5 +15,6 @@
  */
 /**
  * Reflection utils.
+ * 反射模块
  */
 package org.apache.ibatis.reflection;

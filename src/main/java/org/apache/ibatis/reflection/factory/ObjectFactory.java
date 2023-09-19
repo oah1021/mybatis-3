@@ -37,7 +37,7 @@ public interface ObjectFactory {
 
   /**
    * Creates a new object with default constructor.
-   *
+   *  创建指定类的对象
    * @param <T>
    *          the generic type
    * @param type
@@ -49,14 +49,14 @@ public interface ObjectFactory {
 
   /**
    * Creates a new object with the specified constructor and params.
-   *
+   * 创建指定类的对象，使用特定的构造方法
    * @param <T>
    *          the generic type
-   * @param type
+   * @param type 目标类
    *          Object type
-   * @param constructorArgTypes
+   * @param constructorArgTypes 参数类型
    *          Constructor argument types
-   * @param constructorArgs
+   * @param constructorArgs 参数值
    *          Constructor argument values
    *
    * @return the t
@@ -66,7 +66,7 @@ public interface ObjectFactory {
   /**
    * Returns true if this object can have a set of other objects. It's main purpose is to support
    * non-java.util.Collection objects like Scala collections.
-   *
+   * 判断指定类是否是集合
    * @param <T>
    *          the generic type
    * @param type

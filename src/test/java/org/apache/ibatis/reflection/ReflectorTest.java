@@ -32,6 +32,20 @@ import org.junit.jupiter.api.Test;
 
 class ReflectorTest {
 
+  static class TestA {
+    private Long id;
+
+    public void setId(Long id) {
+      this.id = id;
+    }
+  }
+
+  @Test
+  void testReturnTypeNotNull() {
+    DefaultReflectorFactory reflectorFactory = new DefaultReflectorFactory();
+    reflectorFactory.findForClass(TestA.class);
+  }
+
   @Test
   void testGetSetterType() {
     ReflectorFactory reflectorFactory = new DefaultReflectorFactory();

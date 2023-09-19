@@ -26,6 +26,10 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
   private String index;
   private final String children;
 
+  /**
+   * 分词器，将完整属性名称拆分成 属性名称、子属性名称、索引
+   * @param fullname
+   */
   public PropertyTokenizer(String fullname) {
     int delim = fullname.indexOf('.');
     if (delim > -1) {
@@ -59,11 +63,19 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
     return children;
   }
 
+  /**
+   * 判断是否有下一个元素
+   * @return
+   */
   @Override
   public boolean hasNext() {
     return children != null;
   }
 
+  /**
+   * 迭代获得下一个 PropertyTokenizer 对象
+   * @return
+   */
   @Override
   public PropertyTokenizer next() {
     return new PropertyTokenizer(children);

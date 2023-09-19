@@ -23,6 +23,9 @@ import org.apache.ibatis.reflection.Reflector;
  * @author Clinton Begin
  */
 public class GetFieldInvoker implements Invoker {
+  /**
+   * 要获取其值的字段
+   */
   private final Field field;
 
   public GetFieldInvoker(Field field) {
@@ -32,10 +35,14 @@ public class GetFieldInvoker implements Invoker {
   @Override
   public Object invoke(Object target, Object[] args) throws IllegalAccessException {
     try {
+      // 尝试直接通过 field.get(target) 获取目标对象的字段值
       return field.get(target);
     } catch (IllegalAccessException e) {
+      // 检查是否可以控制成员可访问性,如果可以
       if (Reflector.canControlMemberAccessible()) {
+        // 设置字段的可访问性为 true
         field.setAccessible(true);
+        // 再次获取字段的值
         return field.get(target);
       }
       throw e;
@@ -44,6 +51,7 @@ public class GetFieldInvoker implements Invoker {
 
   @Override
   public Class<?> getType() {
+    // 返回字段的类型
     return field.getType();
   }
 }

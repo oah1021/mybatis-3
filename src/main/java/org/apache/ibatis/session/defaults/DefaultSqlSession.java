@@ -149,6 +149,7 @@ public class DefaultSqlSession implements SqlSession {
 
   private <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
+      // 获取 MappedStatement 对象
       MappedStatement ms = configuration.getMappedStatement(statement);
       dirty |= ms.isDirtySelect();
       return executor.query(ms, wrapCollection(parameter), rowBounds, handler);

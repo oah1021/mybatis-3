@@ -660,7 +660,7 @@ public class PooledDataSource implements DataSource {
    */
   protected boolean pingConnection(PooledConnection conn) {
     // 记录是否ping成功
-    boolean result = true;
+    boolean result;
 
     try {
       // 判断真实的连接是否已经关闭，如果已经关闭，就意味着 ping 一定是失败的
@@ -687,8 +687,6 @@ public class PooledDataSource implements DataSource {
         if (!realConn.getAutoCommit()) {
           realConn.rollback();
         }
-        // 标记为成功
-        result = true;
         if (log.isDebugEnabled()) {
           log.debug("Connection " + conn.getRealHashCode() + " is GOOD!");
         }

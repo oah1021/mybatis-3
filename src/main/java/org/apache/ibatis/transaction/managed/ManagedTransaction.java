@@ -39,8 +39,14 @@ public class ManagedTransaction implements Transaction {
   private static final Log log = LogFactory.getLog(ManagedTransaction.class);
 
   private DataSource dataSource;
+  /**
+   * 事务隔离级别
+   */
   private TransactionIsolationLevel level;
   private Connection connection;
+  /**
+   * 是否关闭连接
+   */
   private final boolean closeConnection;
 
   public ManagedTransaction(Connection connection, boolean closeConnection) {
@@ -57,6 +63,7 @@ public class ManagedTransaction implements Transaction {
   @Override
   public Connection getConnection() throws SQLException {
     if (this.connection == null) {
+      // 打开/创建连接
       openConnection();
     }
     return this.connection;

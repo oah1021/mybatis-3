@@ -35,27 +35,38 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
   protected DataSource dataSource;
 
   public UnpooledDataSourceFactory() {
+    // 创建 UnpooledDataSource 对象
     this.dataSource = new UnpooledDataSource();
   }
 
   @Override
   public void setProperties(Properties properties) {
     Properties driverProperties = new Properties();
+    // 创建 dataSource 对应的 MetaObject 对象
     MetaObject metaDataSource = SystemMetaObject.forObject(dataSource);
+    // 遍历 properties 属性
     for (Object key : properties.keySet()) {
       String propertyName = (String) key;
+      // 如果 key 是以 driver. 字符串开头
       if (propertyName.startsWith(DRIVER_PROPERTY_PREFIX)) {
+        // 获取 key 对应的value
         String value = properties.getProperty(propertyName);
+        // 然后将 value设置给 截取后的key  如：driver.name 就是设置给 name 属性
         driverProperties.setProperty(propertyName.substring(DRIVER_PROPERTY_PREFIX_LENGTH), value);
-      } else if (metaDataSource.hasSetter(propertyName)) {
+      } else if (metaDataSource.hasSetter(propertyName)) { // 如果 propertyName 存在 setter 方法
+        // 到这一步说明 properties 中的这个key 不是以 driver. 前缀开头
         String value = (String) properties.get(propertyName);
+        // 基本类型值 转为包装类型值
         Object convertedValue = convertValue(metaDataSource, propertyName, value);
+        // 重新给字段赋值
         metaDataSource.setValue(propertyName, convertedValue);
       } else {
         throw new DataSourceException("Unknown DataSource property: " + propertyName);
       }
     }
+    // 如果 driverProperties 中的属性大于 0
     if (driverProperties.size() > 0) {
+      // 设置 driverProperties 到 MetaObject 中
       metaDataSource.setValue("driverProperties", driverProperties);
     }
   }
@@ -67,7 +78,9 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
 
   private Object convertValue(MetaObject metaDataSource, String propertyName, String value) {
     Object convertedValue = value;
+    // 获取 propertyName 属性的 setter 方法的属性类型
     Class<?> targetType = metaDataSource.getSetterType(propertyName);
+    // 对属性类型进行类型转换 转为包装类型
     if (targetType == Integer.class || targetType == int.class) {
       convertedValue = Integer.valueOf(value);
     } else if (targetType == Long.class || targetType == long.class) {
@@ -75,6 +88,7 @@ public class UnpooledDataSourceFactory implements DataSourceFactory {
     } else if (targetType == Boolean.class || targetType == boolean.class) {
       convertedValue = Boolean.valueOf(value);
     }
+    // 返回转换后类型的属性
     return convertedValue;
   }
 

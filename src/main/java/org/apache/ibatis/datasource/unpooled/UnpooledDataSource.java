@@ -33,22 +33,52 @@ import javax.sql.DataSource;
 import org.apache.ibatis.io.Resources;
 
 /**
+ * 非池型数据源
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
 public class UnpooledDataSource implements DataSource {
 
+  /**
+   * 类加载器
+   */
   private ClassLoader driverClassLoader;
+  /**
+   * Driver 属性
+   */
   private Properties driverProperties;
+  /**
+   * 已注册的 Driver 映射
+   */
   private static final Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
+  /**
+   * Driver 类名
+   */
   private String driver;
+  /**
+   * 数据库url
+   */
   private String url;
+  /**
+   * 数据库用户名
+   */
   private String username;
+  /**
+   * 数据库密码
+   */
   private String password;
-
+  /**
+   * 是否自动提交事务
+   */
   private Boolean autoCommit;
+  /**
+   * 默认事务隔离级别
+   */
   private Integer defaultTransactionIsolationLevel;
+  /**
+   * 默认网络超时时间
+   */
   private Integer defaultNetworkTimeout;
 
   static {

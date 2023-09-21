@@ -30,13 +30,23 @@ import org.apache.ibatis.cache.Cache;
  * @author Clinton Begin
  */
 public class WeakCache implements Cache {
+  /**
+   * 强引用 队列
+   */
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
+  /**
+   * 被GC 回收的WeakEntry 集合
+   */
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
   private final Cache delegate;
+  /**
+   * hardLinksToAvoidGarbageCollection 的大小
+   */
   private int numberOfHardLinks;
 
   public WeakCache(Cache delegate) {
     this.delegate = delegate;
+    // 默认 256
     this.numberOfHardLinks = 256;
     this.hardLinksToAvoidGarbageCollection = new LinkedList<>();
     this.queueOfGarbageCollectedEntries = new ReferenceQueue<>();
@@ -49,6 +59,7 @@ public class WeakCache implements Cache {
 
   @Override
   public int getSize() {
+    // 移除已经被 GC 回收的
     removeGarbageCollectedItems();
     return delegate.getSize();
   }

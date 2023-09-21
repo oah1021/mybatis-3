@@ -55,12 +55,14 @@ public class SerializedCache implements Cache {
     if ((object != null) && !(object instanceof Serializable)) {
       throw new CacheException("SharedCache failed to make a copy of a non-serializable object: " + object);
     }
+    // 对值进行序列化
     delegate.putObject(key, serialize((Serializable) object));
   }
 
   @Override
   public Object getObject(Object key) {
     Object object = delegate.getObject(key);
+    // 反序列化
     return object == null ? null : deserialize((byte[]) object);
   }
 
@@ -115,6 +117,7 @@ public class SerializedCache implements Cache {
 
     @Override
     protected Class<?> resolveClass(ObjectStreamClass desc) throws ClassNotFoundException {
+      // 解析类
       return Resources.classForName(desc.getName());
     }
 

@@ -29,6 +29,9 @@ public class CacheKey implements Cloneable, Serializable {
 
   private static final long serialVersionUID = 1146682552656046210L;
 
+  /**
+   * 空缓存 键
+   */
   public static final CacheKey NULL_CACHE_KEY = new CacheKey() {
 
     private static final long serialVersionUID = 1L;
@@ -49,6 +52,9 @@ public class CacheKey implements Cloneable, Serializable {
 
   private final int multiplier;
   private int hashcode;
+  /**
+   * 校验和
+   */
   private long checksum;
   private int count;
   // 8/21/2017 - Sonarlint flags this as needing to be marked transient. While true if content is not serializable, this

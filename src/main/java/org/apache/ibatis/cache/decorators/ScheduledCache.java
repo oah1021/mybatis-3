@@ -25,11 +25,18 @@ import org.apache.ibatis.cache.Cache;
 public class ScheduledCache implements Cache {
 
   private final Cache delegate;
+  /**
+   * 清除间隔时间
+   */
   protected long clearInterval;
+  /**
+   * 上次清除时间
+   */
   protected long lastClear;
 
   public ScheduledCache(Cache delegate) {
     this.delegate = delegate;
+    // 默认 1小时
     this.clearInterval = TimeUnit.HOURS.toMillis(1);
     this.lastClear = System.currentTimeMillis();
   }
@@ -82,6 +89,10 @@ public class ScheduledCache implements Cache {
     return delegate.equals(obj);
   }
 
+  /**
+   * 判断是否要全部清空
+   * @return
+   */
   private boolean clearWhenStale() {
     if (System.currentTimeMillis() - lastClear > clearInterval) {
       clear();

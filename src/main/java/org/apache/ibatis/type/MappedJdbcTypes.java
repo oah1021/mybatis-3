@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
 public @interface MappedJdbcTypes {
   /**
    * Returns jdbc types to map {@link TypeHandler}.
-   *
+   * 要映射 TypeHandler的 jdbc 类型
    * @return jdbc types
    */
   JdbcType[] value();

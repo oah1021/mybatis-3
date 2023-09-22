@@ -32,10 +32,14 @@ import java.util.Properties;
  */
 public class Resources {
 
+  /**
+   * 类加载器包装类
+   */
   private static final ClassLoaderWrapper classLoaderWrapper = new ClassLoaderWrapper();
 
   /**
    * Charset to use when calling getResourceAsReader. null means use the system default.
+   * 字符集
    */
   private static Charset charset;
 
@@ -44,7 +48,7 @@ public class Resources {
 
   /**
    * Returns the default classloader (may be null).
-   *
+   * 获取默认的类加载器
    * @return The default classloader
    */
   public static ClassLoader getDefaultClassLoader() {
@@ -53,7 +57,7 @@ public class Resources {
 
   /**
    * Sets the default classloader
-   *
+   * 设置默认的类加载器
    * @param defaultClassLoader
    *          - the new default ClassLoader
    */
@@ -91,7 +95,9 @@ public class Resources {
    *           If the resource cannot be found or read
    */
   public static URL getResourceURL(ClassLoader loader, String resource) throws IOException {
+    // 使用指定的类加载器获取资源 URL
     URL url = classLoaderWrapper.getResourceAsURL(resource, loader);
+    // 如果 == null，说明没有找到该资源
     if (url == null) {
       throw new IOException("Could not find resource " + resource);
     }
@@ -100,7 +106,7 @@ public class Resources {
 
   /**
    * Returns a resource on the classpath as a Stream object
-   *
+   * 将类路径上的资源作为 Stream 对象返回
    * @param resource
    *          The resource to find
    *
@@ -110,6 +116,7 @@ public class Resources {
    *           If the resource cannot be found or read
    */
   public static InputStream getResourceAsStream(String resource) throws IOException {
+    // 从类加载器中获取资源文件并返回其输入流
     return getResourceAsStream(null, resource);
   }
 
@@ -135,7 +142,7 @@ public class Resources {
   }
 
   /**
-   * Returns a resource on the classpath as a Properties object
+   * 将类路径上的资源作为属性对象返回
    *
    * @param resource
    *          The resource to find
@@ -146,8 +153,10 @@ public class Resources {
    *           If the resource cannot be found or read
    */
   public static Properties getResourceAsProperties(String resource) throws IOException {
+    // 创建属性对象
     Properties props = new Properties();
     try (InputStream in = getResourceAsStream(resource)) {
+      // 从输入流中读取属性列表
       props.load(in);
     }
     return props;
@@ -327,6 +336,10 @@ public class Resources {
     return charset;
   }
 
+  /**
+   * 设置字符集
+   * @param charset
+   */
   public static void setCharset(Charset charset) {
     Resources.charset = charset;
   }

@@ -37,6 +37,7 @@ public abstract class TypeReference<T> {
   }
 
   Type getSuperclassTypeParameter(Class<?> clazz) {
+    // 返回 clazz 的超类
     Type genericSuperclass = clazz.getGenericSuperclass();
     if (genericSuperclass instanceof Class) {
       // try to climb up the hierarchy until meet something useful
@@ -48,9 +49,12 @@ public abstract class TypeReference<T> {
           + "Remove the extension or add a type parameter to it.");
     }
 
+    // 强转为参数化类型，然后获取泛型的实际类型
     Type rawType = ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0];
     // TODO remove this when Reflector is fixed to return Types
+    // 如果 rawType 也是参数化类型
     if (rawType instanceof ParameterizedType) {
+      // 返回声明次类型的类
       rawType = ((ParameterizedType) rawType).getRawType();
     }
 

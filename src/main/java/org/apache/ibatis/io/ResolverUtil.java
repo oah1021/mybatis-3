@@ -91,7 +91,7 @@ public class ResolverUtil<T> {
 
     /**
      * Constructs an IsA test using the supplied Class as the parent class/interface.
-     *
+     * 判断是否为指定类
      * @param parentType
      *          the parent type
      */
@@ -113,6 +113,7 @@ public class ResolverUtil<T> {
 
   /**
    * A Test that checks to see if each class is annotated with a specific annotation. If it is, then the test returns
+   * 判断是否有指定注解
    * true, otherwise false.
    */
   public static class AnnotatedWith implements Test {
@@ -142,7 +143,10 @@ public class ResolverUtil<T> {
     }
   }
 
-  /** The set of matches being accumulated. */
+  /**
+   * The set of matches being accumulated.
+   * 符合条件的类的集合
+   */
   private Set<Class<? extends T>> matches = new HashSet<>();
 
   /**
@@ -186,7 +190,7 @@ public class ResolverUtil<T> {
    * Attempts to discover classes that are assignable to the type provided. In the case that an interface is provided
    * this method will collect implementations. In the case of a non-interface class, subclasses will be collected.
    * Accumulated classes can be accessed by calling {@link #getClasses()}.
-   *
+   * 在多个包中查找指定类的 多个子类或实现类
    * @param parent
    *          the class of interface to find subclasses or implementations of
    * @param packageNames
@@ -210,7 +214,7 @@ public class ResolverUtil<T> {
   /**
    * Attempts to discover classes that are annotated with the annotation. Accumulated classes can be accessed by calling
    * {@link #getClasses()}.
-   *
+   * 在多个包中查找存在指定注解的类们
    * @param annotation
    *          the annotation that should be present on matching classes
    * @param packageNames
@@ -244,12 +248,17 @@ public class ResolverUtil<T> {
    * @return the resolver util
    */
   public ResolverUtil<T> find(Test test, String packageName) {
+    // 获取包的路径
     String path = getPackagePath(packageName);
 
     try {
+      // 获得路径下的所有文件
       List<String> children = VFS.getInstance().list(path);
+      // 遍历
       for (String child : children) {
+        // 是 javaClass
         if (child.endsWith(".class")) {
+          // 如果匹配，添加到结果集
           addIfMatching(test, child);
         }
       }
@@ -285,14 +294,17 @@ public class ResolverUtil<T> {
   @SuppressWarnings("unchecked")
   protected void addIfMatching(Test test, String fqn) {
     try {
+      // 获得全限定类名
       String externalName = fqn.substring(0, fqn.indexOf('.')).replace('/', '.');
       ClassLoader loader = getClassLoader();
       if (log.isDebugEnabled()) {
         log.debug("Checking to see if class " + externalName + " matches criteria [" + test + "]");
       }
-
+      // 加载类
       Class<?> type = loader.loadClass(externalName);
+      // 判断是否匹配
       if (test.matches(type)) {
+        // 添加到结果集
         matches.add((Class<T>) type);
       }
     } catch (Throwable t) {

@@ -26,8 +26,11 @@ import java.util.Set;
  */
 public class SimpleTypeRegistry {
 
+  /**
+   * 简单类型的集合
+   */
   private static final Set<Class<?>> SIMPLE_TYPE_SET = new HashSet<>();
-
+  // 初始化简单类型
   static {
     SIMPLE_TYPE_SET.add(String.class);
     SIMPLE_TYPE_SET.add(Byte.class);
@@ -50,6 +53,7 @@ public class SimpleTypeRegistry {
 
   /*
    * Tells us if the class passed in is a known common type
+   * 传入的类是否是简单类型
    * @param clazz The class to check
    * @return True if the class is known
    */

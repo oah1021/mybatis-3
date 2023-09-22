@@ -109,9 +109,13 @@ public enum JdbcType {
   TIMESTAMP_WITH_TIMEZONE(Types.TIMESTAMP_WITH_TIMEZONE); // JDBC 4.2 JDK8
 
   public final int TYPE_CODE;
+  /**
+   * 代码编号 和JdbcType 的映射
+   */
   private static final Map<Integer, JdbcType> codeLookup = new HashMap<>();
 
   static {
+    // 初始化 codeLookup
     for (JdbcType type : JdbcType.values()) {
       codeLookup.put(type.TYPE_CODE, type);
     }

@@ -34,6 +34,11 @@ import org.apache.ibatis.session.SqlSession;
 public class MapperRegistry {
 
   private final Configuration config;
+  /**
+   * MapperProxyFactory 的映射
+   *
+   * KEY：Mapper 接口
+   */
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new ConcurrentHashMap<>();
 
   public MapperRegistry(Configuration config) {
@@ -58,10 +63,13 @@ public class MapperRegistry {
   }
 
   public <T> void addMapper(Class<T> type) {
+    // 如果是接口
     if (type.isInterface()) {
+      // 是否已包含此Mapper，添加过则抛出异常
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
+      // 表示是否加载完成
       boolean loadCompleted = false;
       try {
         knownMappers.put(type, new MapperProxyFactory<>(type));
@@ -70,9 +78,11 @@ public class MapperRegistry {
         // mapper parser. If the type is already known, it won't try.
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
+        // 标记加载完成
         loadCompleted = true;
       } finally {
         if (!loadCompleted) {
+          // 未加载完成，则从 knownMappers 中删除
           knownMappers.remove(type);
         }
       }
@@ -101,10 +111,13 @@ public class MapperRegistry {
    * @since 3.2.2
    */
   public void addMappers(String packageName, Class<?> superType) {
+    // 扫描指定的包
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
+    // 获取符合条件的类
     Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();
     for (Class<?> mapperClass : mapperSet) {
+      // 添加
       addMapper(mapperClass);
     }
   }

@@ -28,27 +28,46 @@ import org.apache.ibatis.session.SqlSession;
  */
 public class MapperProxyFactory<T> {
 
+  /**
+   * Mapper 接口
+   */
   private final Class<T> mapperInterface;
+  /**
+   * 方法与 MapperMethod的映射
+   */
   private final Map<Method, MapperMethodInvoker> methodCache = new ConcurrentHashMap<>();
 
   public MapperProxyFactory(Class<T> mapperInterface) {
     this.mapperInterface = mapperInterface;
   }
 
+  /**
+   * 获取Mapper 接口
+   * @return
+   */
   public Class<T> getMapperInterface() {
     return mapperInterface;
   }
 
+  /**
+   * 获取映射缓存集合
+   * @return
+   */
   public Map<Method, MapperMethodInvoker> getMethodCache() {
     return methodCache;
   }
 
   @SuppressWarnings("unchecked")
   protected T newInstance(MapperProxy<T> mapperProxy) {
-    return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
+    // 创建指定接口的代理实例
+    return (T) Proxy.newProxyInstance(
+      mapperInterface.getClassLoader(), // 用于定义代理类的类加载器
+      new Class[] { mapperInterface }, // 要实现的代理类的接口列表
+      mapperProxy); // 代理类
   }
 
   public T newInstance(SqlSession sqlSession) {
+    // 创建一个代理类
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);
   }

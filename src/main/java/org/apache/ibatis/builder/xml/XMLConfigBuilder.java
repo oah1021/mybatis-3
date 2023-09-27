@@ -52,9 +52,17 @@ import org.apache.ibatis.type.JdbcType;
  * @author Kazuki Shimizu
  */
 public class XMLConfigBuilder extends BaseBuilder {
-
+  /**
+   * 是否已经解析
+   */
   private boolean parsed;
+  /**
+   * 基于 Java XPath解析器
+   */
   private final XPathParser parser;
+  /**
+   * 环境
+   */
   private String environment;
   private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
 
@@ -94,8 +102,11 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private XMLConfigBuilder(Class<? extends Configuration> configClass, XPathParser parser, String environment,
                            Properties props) {
+    // 创建Configuration 对象
     super(newConfig(configClass));
+
     ErrorContext.instance().resource("SQL Mapper Configuration");
+    // 设置Configuration 对象的 variables 属性
     this.configuration.setVariables(props);
     this.parsed = false;
     this.environment = environment;
@@ -154,13 +165,18 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private Properties settingsAsProperties(XNode context) {
+    // context 为null，则创建一个Properties对象
     if (context == null) {
       return new Properties();
     }
+    // 解析子标签为Properties 对象
     Properties props = context.getChildrenAsProperties();
     // Check that all settings are known to the configuration class
+    // 获得 Configuration类的元类
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
+    // 遍历Properties对象中的key
     for (Object key : props.keySet()) {
+      // 如果某个key 不存在 setter方法，抛出异常
       if (!metaConfig.hasSetter(String.valueOf(key))) {
         throw new BuilderException(
           "The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
@@ -170,12 +186,18 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private void loadCustomVfs(Properties props) throws ClassNotFoundException {
+    // 获得 vfsImpl 属性
     String value = props.getProperty("vfsImpl");
+    // 如果 value != null
     if (value != null) {
+      // 使用 , 作为分隔符，得到 VFS类名的数组
       String[] clazzes = value.split(",");
+      // 遍历VFS类数组
       for (String clazz : clazzes) {
+        // clazz不为空
         if (!clazz.isEmpty()) {
           @SuppressWarnings("unchecked")
+          // 加载这个类并设置到 configuration中
           Class<? extends VFS> vfsImpl = (Class<? extends VFS>) Resources.classForName(clazz);
           configuration.setVfsImpl(vfsImpl);
         }
@@ -184,24 +206,35 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private void loadCustomLogImpl(Properties props) {
+    // 获取 logImpl 属性值解析为对应的Class
     Class<? extends Log> logImpl = resolveClass(props.getProperty("logImpl"));
+    // 将实现类设置到 configuration中
     configuration.setLogImpl(logImpl);
   }
 
   private void typeAliasesElement(XNode parent) {
     if (parent != null) {
+      // 遍历子节点
       for (XNode child : parent.getChildren()) {
+        // 指定为包的情况下，注册包下的所有类
         if ("package".equals(child.getName())) {
+          // 获得包名
           String typeAliasPackage = child.getStringAttribute("name");
+          // 注册包下的所有类
           configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
-        } else {
+        } else { // 指定了类
+          // 类别名
           String alias = child.getStringAttribute("alias");
+          // 类名
           String type = child.getStringAttribute("type");
           try {
+            // 根据全限定类名获取类
             Class<?> clazz = Resources.classForName(type);
             if (alias == null) {
+              // 没有别名，使用类的简单名称作为别名
               typeAliasRegistry.registerAlias(clazz);
             } else {
+              // 直接注册
               typeAliasRegistry.registerAlias(alias, clazz);
             }
           } catch (ClassNotFoundException e) {
@@ -214,12 +247,18 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
+      // 遍历 plugins标签
       for (XNode child : parent.getChildren()) {
+        // 获取拦截器的名称
         String interceptor = child.getStringAttribute("interceptor");
+        // 子标签的key value
         Properties properties = child.getChildrenAsProperties();
+        // 根据拦截器的全限定类名创建一个实例
         Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).getDeclaredConstructor()
           .newInstance();
+        // 设置拦截器的属性
         interceptorInstance.setProperties(properties);
+        // 添加拦截器到 configuration
         configuration.addInterceptor(interceptorInstance);
       }
     }
@@ -227,10 +266,15 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void objectFactoryElement(XNode context) throws Exception {
     if (context != null) {
+      // 获得objectFactory 的实现类
       String type = context.getStringAttribute("type");
+      // 获的 Properties 属性
       Properties properties = context.getChildrenAsProperties();
+      // 根据全限定类名获取类并实例化
       ObjectFactory factory = (ObjectFactory) resolveClass(type).getDeclaredConstructor().newInstance();
+      // 设置 Properties属性
       factory.setProperties(properties);
+      // 设置 configuration的 objectFactory属性
       configuration.setObjectFactory(factory);
     }
   }
@@ -251,24 +295,38 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析 properties 节点
+   * @param context
+   * @throws Exception
+   */
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
+      // 读取子标签们，为 Properties 对象
       Properties defaults = context.getChildrenAsProperties();
+      // 获取 resource 属性值
       String resource = context.getStringAttribute("resource");
+      // 获取 url 属性值
       String url = context.getStringAttribute("url");
+      // resource 和 url 都为 null，则抛出异常
       if (resource != null && url != null) {
         throw new BuilderException(
           "The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
+      // 如果 resource != null，
       if (resource != null) {
+        // 读取 本地Properties 配置文件到 defaults 中
         defaults.putAll(Resources.getResourceAsProperties(resource));
       } else if (url != null) {
+        // 读取 远程Properties 配置文件到 defaults 中
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
+      // 覆盖 configuration中的 Properties对象到 defaults中
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);
       }
+      // 设置 defaults到 parser和configuration 中
       parser.setVariables(defaults);
       configuration.setVariables(defaults);
     }
@@ -313,9 +371,11 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
+      // 如果 environment属性为null，从 default属性获得
       if (environment == null) {
         environment = context.getStringAttribute("default");
       }
+
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
         if (isSpecifiedEnvironment(id)) {

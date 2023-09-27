@@ -39,6 +39,7 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * Mapper 方法，在Mapper 接口中，每个定义的方法对应一个MapperMethod 对象。
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Lasse Voss
@@ -217,18 +218,25 @@ public class MapperMethod {
   public static class SqlCommand {
 
     private final String name;
+    /**
+     * Sql命令类型
+     */
     private final SqlCommandType type;
 
     public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
       final String methodName = method.getName();
       final Class<?> declaringClass = method.getDeclaringClass();
+      // 获得 MappedStatement对象，如果找不到说明该方法上没有对应的SQL声明
       MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass, configuration);
+      // 如果 ms == null
       if (ms == null) {
+        // 如果没有@Flush 注解 抛出异常
         if (method.getAnnotation(Flush.class) == null) {
           throw new BindingException(
               "Invalid bound statement (not found): " + mapperInterface.getName() + "." + methodName);
         }
         name = null;
+        // 标记为 FLUSH类型
         type = SqlCommandType.FLUSH;
       } else {
         name = ms.getId();
@@ -270,18 +278,48 @@ public class MapperMethod {
 
   public static class MethodSignature {
 
+    /**
+     * 返回类型是否为集合
+     */
     private final boolean returnsMany;
+    /**
+     * 返回类型是否为 Map
+     */
     private final boolean returnsMap;
+    /**
+     * 返回类型是否 为void
+     */
     private final boolean returnsVoid;
+    /**
+     * 返回类型是否为 Cursor
+     */
     private final boolean returnsCursor;
+    /**
+     * 返回类型是否为 Optional
+     */
     private final boolean returnsOptional;
+    /**
+     * 返回类型
+     */
     private final Class<?> returnType;
+    /**
+     * 返回方法 上的 {@link MapKey#value()}，前提是返回类型是 Map
+     */
     private final String mapKey;
+    /**
+     * 获得 {@link ResultHandler} 在方法参数中的位置。
+     * 如果为 null ，说明不存在这个类型
+     */
     private final Integer resultHandlerIndex;
+    /**
+     * 获得 {@link RowBounds} 在方法参数中的位置。
+     * 如果为 null ，说明不存在这个类型
+     */
     private final Integer rowBoundsIndex;
     private final ParamNameResolver paramNameResolver;
 
     public MethodSignature(Configuration configuration, Class<?> mapperInterface, Method method) {
+      // 初始化 returnType 属性
       Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, mapperInterface);
       if (resolvedReturnType instanceof Class<?>) {
         this.returnType = (Class<?>) resolvedReturnType;
@@ -353,10 +391,15 @@ public class MapperMethod {
     }
 
     private Integer getUniqueParamIndex(Method method, Class<?> paramType) {
+      // 初始化索引 为nul
       Integer index = null;
+      // 获取方法的参数类型数组
       final Class<?>[] argTypes = method.getParameterTypes();
+      // 遍历参数类型数组
       for (int i = 0; i < argTypes.length; i++) {
+        // 类型符合
         if (paramType.isAssignableFrom(argTypes[i])) {
+          // 如果类型重复，抛出异常
           if (index != null) {
             throw new BindingException(
                 method.getName() + " cannot have multiple " + paramType.getSimpleName() + " parameters");
@@ -373,12 +416,17 @@ public class MapperMethod {
 
     private String getMapKey(Method method) {
       String mapKey = null;
+      // 如果方法的返回类型是Map，或者其父类或超类是Map
       if (Map.class.isAssignableFrom(method.getReturnType())) {
+        // 获取方法上的@MapKey注解
         final MapKey mapKeyAnnotation = method.getAnnotation(MapKey.class);
+        // 如果存在@Mapkey 注解
         if (mapKeyAnnotation != null) {
+          // 获取注解上的value属性值
           mapKey = mapKeyAnnotation.value();
         }
       }
+      // 方法返回类型不是Map，直接返回初始化的mapKey值 ：null
       return mapKey;
     }
   }

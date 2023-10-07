@@ -375,15 +375,22 @@ public class XMLConfigBuilder extends BaseBuilder {
       if (environment == null) {
         environment = context.getStringAttribute("default");
       }
-
+      // 遍历 environments 标签
       for (XNode child : context.getChildren()) {
+        // 获取 id 属性值 （环境：如 test）
         String id = child.getStringAttribute("id");
+        // 判断是否是指定的环境
         if (isSpecifiedEnvironment(id)) {
+          // 构建并返回事物工厂
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
+          // 构建并返回数据源工厂
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
+          // 获取数据源
           DataSource dataSource = dsFactory.getDataSource();
+          // 创建环境对象并设置 id transactionFactory dataSource 属性的值
           Environment.Builder environmentBuilder = new Environment.Builder(id).transactionFactory(txFactory)
             .dataSource(dataSource);
+          // 设置 environment 到 configuration 中
           configuration.setEnvironment(environmentBuilder.build());
           break;
         }
@@ -410,11 +417,21 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 通过 transactionManager 构建并返回事物工厂对象
+   * @param context
+   * @return
+   * @throws Exception
+   */
   private TransactionFactory transactionManagerElement(XNode context) throws Exception {
     if (context != null) {
+      // 获取 transactionManager 标签的 type 属性
       String type = context.getStringAttribute("type");
+      // 将子节点转为Properties属性对象
       Properties props = context.getChildrenAsProperties();
+      // 根据type值找到对应的Class，获取默认的无参构造，创建实例
       TransactionFactory factory = (TransactionFactory) resolveClass(type).getDeclaredConstructor().newInstance();
+      // 设置事物工厂的属性
       factory.setProperties(props);
       return factory;
     }
@@ -423,9 +440,13 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private DataSourceFactory dataSourceElement(XNode context) throws Exception {
     if (context != null) {
+      // 获取 dataSource 标签的type属性 （通常是全限定类名）
       String type = context.getStringAttribute("type");
+      // 将子节点转为Properties属性对象
       Properties props = context.getChildrenAsProperties();
+      // 根据type值找到对应的Class，获取默认的无参构造，创建实例
       DataSourceFactory factory = (DataSourceFactory) resolveClass(type).getDeclaredConstructor().newInstance();
+      // 设置数据源工厂的 属性
       factory.setProperties(props);
       return factory;
     }

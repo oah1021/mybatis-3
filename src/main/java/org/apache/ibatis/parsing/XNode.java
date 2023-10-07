@@ -266,6 +266,10 @@ public class XNode {
     return children;
   }
 
+  /**
+   * 获取子节点转换为Properties 属性
+   * @return
+   */
   public Properties getChildrenAsProperties() {
     Properties properties = new Properties();
     for (XNode child : getChildren()) {

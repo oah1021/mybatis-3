@@ -52,6 +52,13 @@ public class PropertyParser {
     // Prevent Instantiation
   }
 
+  /**
+   * 动态替换占位符的值
+   * 如：${driver}
+   * @param string
+   * @param variables
+   * @return
+   */
   public static String parse(String string, Properties variables) {
     // 创建 VariableTokenHandler 对象，传入 variables，用于处理占位符替换
     VariableTokenHandler handler = new VariableTokenHandler(variables);

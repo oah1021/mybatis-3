@@ -57,6 +57,9 @@ public final class TypeHandlerRegistry {
   private final Map<JdbcType, TypeHandler<?>> jdbcTypeHandlerMap = new EnumMap<>(JdbcType.class);
   private final Map<Type, Map<JdbcType, TypeHandler<?>>> typeHandlerMap = new ConcurrentHashMap<>();
   private final TypeHandler<Object> unknownTypeHandler;
+  /**
+   * 所有类型处理程序映射
+   */
   private final Map<Class<?>, TypeHandler<?>> allTypeHandlersMap = new HashMap<>();
 
   private static final Map<JdbcType, TypeHandler<?>> NULL_TYPE_HANDLER_MAP = Collections.emptyMap();
@@ -256,7 +259,9 @@ public final class TypeHandlerRegistry {
   }
 
   private Map<JdbcType, TypeHandler<?>> getJdbcHandlerMap(Type type) {
+    // 获取jdbc 类型处理程序
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = typeHandlerMap.get(type);
+    // 不为空且map大小不为0，则返回jdbcHandlerMap，否则返回 null
     if (jdbcHandlerMap != null) {
       return NULL_TYPE_HANDLER_MAP.equals(jdbcHandlerMap) ? null : jdbcHandlerMap;
     }
@@ -369,15 +374,21 @@ public final class TypeHandlerRegistry {
   }
 
   private <T> void register(Type javaType, TypeHandler<? extends T> typeHandler) {
+    // 获取 typeHandler 类上的MappedJdbcTypes 注解
+    // 因为 jdbc类型 也可以xml配置，也可以在注解配置，没有读取到xml的jdbcType配置就会走这一步
     MappedJdbcTypes mappedJdbcTypes = typeHandler.getClass().getAnnotation(MappedJdbcTypes.class);
+    // 如果存在 MappedJdbcTypes注解
     if (mappedJdbcTypes != null) {
+      // 遍历 MappedJdbcTypes注解的value 值
       for (JdbcType handledJdbcType : mappedJdbcTypes.value()) {
         register(javaType, handledJdbcType, typeHandler);
       }
+      // 如果要映射到JDBC null类型
       if (mappedJdbcTypes.includeNullJdbcType()) {
         register(javaType, null, typeHandler);
       }
     } else {
+      // 不存在 MappedJdbcTypes注解
       register(javaType, null, typeHandler);
     }
   }
@@ -395,12 +406,17 @@ public final class TypeHandlerRegistry {
   }
 
   private void register(Type javaType, JdbcType jdbcType, TypeHandler<?> handler) {
+    // java类型 != null
     if (javaType != null) {
+      // 先从类型处理程序集合中获取对应的类型映射集合
       Map<JdbcType, TypeHandler<?>> map = typeHandlerMap.get(javaType);
+      // 如果不存在这个java类型的类型映射集合，则创建一个map
       if (map == null || map == NULL_TYPE_HANDLER_MAP) {
         map = new HashMap<>();
       }
+      // 然后设置 key（jdbcType） 和 value（handler）
       map.put(jdbcType, handler);
+      // 然后将map存入 类型处理程序集合
       typeHandlerMap.put(javaType, map);
     }
     allTypeHandlersMap.put(handler.getClass(), handler);
@@ -412,10 +428,17 @@ public final class TypeHandlerRegistry {
 
   // Only handler type
 
+  /**
+   * 注册指定类 为类型处理器
+   * @param typeHandlerClass
+   */
   public void register(Class<?> typeHandlerClass) {
     boolean mappedTypeFound = false;
+    // 指定类是否存在 MappedTypes 注解，优先使用注解上的配置
     MappedTypes mappedTypes = typeHandlerClass.getAnnotation(MappedTypes.class);
+    // 如果存在
     if (mappedTypes != null) {
+      // 遍历 MappedTypes 注解的value 值
       for (Class<?> javaTypeClass : mappedTypes.value()) {
         register(javaTypeClass, typeHandlerClass);
         mappedTypeFound = true;
@@ -444,11 +467,21 @@ public final class TypeHandlerRegistry {
 
   // Construct a handler (used also from Builders)
 
+  /**
+   * 构造一个类型处理程序的实例
+   * @param javaTypeClass
+   * @param typeHandlerClass
+   * @return
+   * @param <T>
+   */
   @SuppressWarnings("unchecked")
   public <T> TypeHandler<T> getInstance(Class<?> javaTypeClass, Class<?> typeHandlerClass) {
+    // 如果传入的 javaTypeClass 不为空
     if (javaTypeClass != null) {
       try {
+        // 获取类型处理类的构造函数
         Constructor<?> c = typeHandlerClass.getConstructor(Class.class);
+        // 返回类型处理类 的实例
         return (TypeHandler<T>) c.newInstance(javaTypeClass);
       } catch (NoSuchMethodException ignored) {
         // ignored
@@ -456,8 +489,11 @@ public final class TypeHandlerRegistry {
         throw new TypeException("Failed invoking constructor for handler " + typeHandlerClass, e);
       }
     }
+    // 传入的 javaTypeClass 为空
     try {
+      // 获取无参的构造函数
       Constructor<?> c = typeHandlerClass.getConstructor();
+      // 返回实例
       return (TypeHandler<T>) c.newInstance();
     } catch (Exception e) {
       throw new TypeException("Unable to find a usable constructor for " + typeHandlerClass, e);
@@ -466,12 +502,20 @@ public final class TypeHandlerRegistry {
 
   // scan
 
+  /**
+   * 扫描包下的所有类并将符合条件的类注册为类型处理器
+   * @param packageName
+   */
   public void register(String packageName) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
+    // 查找 包名下所有符合条件的类
     resolverUtil.find(new ResolverUtil.IsA(TypeHandler.class), packageName);
+    // 查找到的符合条件的类
     Set<Class<? extends Class<?>>> handlerSet = resolverUtil.getClasses();
+    // 遍历符合条件的类
     for (Class<?> type : handlerSet) {
       // Ignore inner classes and interfaces (including package-info.java) and abstract classes
+      // 排除匿名内部类 接口 抽象类
       if (!type.isAnonymousClass() && !type.isInterface() && !Modifier.isAbstract(type.getModifiers())) {
         register(type);
       }

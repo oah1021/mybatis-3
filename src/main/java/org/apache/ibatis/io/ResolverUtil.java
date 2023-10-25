@@ -91,7 +91,7 @@ public class ResolverUtil<T> {
 
     /**
      * Constructs an IsA test using the supplied Class as the parent class/interface.
-     * 判断是否为指定类
+     * 使用提供的类作为父类/接口构造 IsA 测试
      * @param parentType
      *          the parent type
      */
@@ -99,7 +99,10 @@ public class ResolverUtil<T> {
       this.parent = parentType;
     }
 
-    /** Returns true if type is assignable to the parent type supplied in the constructor. */
+    /**
+     * Returns true if type is assignable to the parent type supplied in the constructor.
+     * 如果类型可分配给构造函数中提供的父类型，则返回 true。
+     */
     @Override
     public boolean matches(Class<?> type) {
       return type != null && parent.isAssignableFrom(type);

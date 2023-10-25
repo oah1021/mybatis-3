@@ -21,7 +21,9 @@ package org.apache.ibatis.mapping;
 public enum ResultFlag {
 
   ID,
-
+  /**
+   * 构造方法
+   */
   CONSTRUCTOR
 
 }

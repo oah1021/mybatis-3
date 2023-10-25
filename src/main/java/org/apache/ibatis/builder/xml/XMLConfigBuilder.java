@@ -130,6 +130,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     try {
       // issue #117 read properties first
       // 解析 properties 元素，加载配置文件中定义的属性值到 Configuration 对象中
+      // 这是全局变量
       propertiesElement(root.evalNode("properties"));
       // 将 settings 元素解析成 Properties 对象，并加载到 Configuration 对象中
       Properties settings = settingsAsProperties(root.evalNode("settings"));
@@ -151,6 +152,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
       // 解析 environments 元素，将数据源信息加入 Configuration 对象中
+      // 将 ${driver} ${url} 解析成真正的值就是发生在 root.evalNode 这里
       environmentsElement(root.evalNode("environments"));
       // 解析 databaseIdProvider 元素，将数据库厂商标识信息加入 Configuration 对象中
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
@@ -197,6 +199,7 @@ public class XMLConfigBuilder extends BaseBuilder {
         // clazz不为空
         if (!clazz.isEmpty()) {
           @SuppressWarnings("unchecked")
+          // 通过全限定类名 加载类
           // 加载这个类并设置到 configuration中
           Class<? extends VFS> vfsImpl = (Class<? extends VFS>) Resources.classForName(clazz);
           configuration.setVfsImpl(vfsImpl);
@@ -206,12 +209,17 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private void loadCustomLogImpl(Properties props) {
+    // 根据别名解析为对应的类
     // 获取 logImpl 属性值解析为对应的Class
     Class<? extends Log> logImpl = resolveClass(props.getProperty("logImpl"));
     // 将实现类设置到 configuration中
     configuration.setLogImpl(logImpl);
   }
 
+  /**
+   * 可以通过 XmlConfigBuilderTest 类中的 shouldSuccessfullyLoadXMLConfigFile测试方法来测试
+   * @param parent
+   */
   private void typeAliasesElement(XNode parent) {
     if (parent != null) {
       // 遍历子节点
@@ -455,17 +463,24 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void typeHandlerElement(XNode parent) {
     if (parent != null) {
+      // 遍历 typeHandlers 标签
       for (XNode child : parent.getChildren()) {
+        // 如果子节点的名称是 package
         if ("package".equals(child.getName())) {
+          // 获取其节点的name 属性值
           String typeHandlerPackage = child.getStringAttribute("name");
+          // 注册类型处理程序
           typeHandlerRegistry.register(typeHandlerPackage);
         } else {
+          // 获取对应属性名的值
           String javaTypeName = child.getStringAttribute("javaType");
           String jdbcTypeName = child.getStringAttribute("jdbcType");
           String handlerTypeName = child.getStringAttribute("handler");
+          // 将属性值解析为对应的类
           Class<?> javaTypeClass = resolveClass(javaTypeName);
           JdbcType jdbcType = resolveJdbcType(jdbcTypeName);
           Class<?> typeHandlerClass = resolveClass(handlerTypeName);
+          // 注册类型处理程序
           if (javaTypeClass != null) {
             if (jdbcType == null) {
               typeHandlerRegistry.register(javaTypeClass, typeHandlerClass);
@@ -486,6 +501,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       for (XNode child : parent.getChildren()) {
         // 解析 package 节点
         if ("package".equals(child.getName())) {
+          // 获取其节点下的name属性值
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
         } else { // 解析 resource、url 或 class 节点
@@ -518,6 +534,11 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 当前环境是否是指定的环境
+   * @param id
+   * @return
+   */
   private boolean isSpecifiedEnvironment(String id) {
     if (environment == null) {
       throw new BuilderException("No environment specified.");

@@ -31,7 +31,10 @@
     <setting name="autoMappingBehavior" value="NONE"/>
     <setting name="autoMappingUnknownColumnBehavior" value="WARNING"/>
     <setting name="cacheEnabled" value="false"/>
-    <setting name="proxyFactory" value="CGLIB"/>
+<!--    TODO Java17 使用 CGLIB 会抛出错误，所以使用 JAVASSIST-->
+<!--    参考：https://github.com/mybatis/mybatis-3/pull/2499 -->
+<!--    <setting name="proxyFactory" value="CGLIB"/>-->
+    <setting name="proxyFactory" value="JAVASSIST"/>
     <setting name="lazyLoadingEnabled" value="true"/>
     <setting name="aggressiveLazyLoading" value="true"/>
     <setting name="multipleResultSetsEnabled" value="false"/>

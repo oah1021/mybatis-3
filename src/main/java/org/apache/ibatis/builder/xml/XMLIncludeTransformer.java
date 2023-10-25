@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Frank D. Martinez [mnesarco]
+ * XML <include /> 标签的转换器，负责将 SQL 中的 <include /> 标签转换成对应的 <sql /> 的内容。
  */
 public class XMLIncludeTransformer {
 
@@ -47,6 +48,7 @@ public class XMLIncludeTransformer {
     Properties variablesContext = new Properties();
     Properties configurationVariables = configuration.getVariables();
     Optional.ofNullable(configurationVariables).ifPresent(variablesContext::putAll);
+    // 处理 <include />
     applyIncludes(source, variablesContext, false);
   }
 
@@ -59,9 +61,13 @@ public class XMLIncludeTransformer {
    *          Current context for static variables with values
    */
   private void applyIncludes(Node source, final Properties variablesContext, boolean included) {
+    // 如果是 include 标签
     if ("include".equals(source.getNodeName())) {
+      // 获得 <sql /> 对应的节点
       Node toInclude = findSqlFragment(getStringAttribute(source, "refid"), variablesContext);
+      // 获得包含 <include /> 标签内的属性
       Properties toIncludeContext = getVariablesContext(source, variablesContext);
+      // 递归调用
       applyIncludes(toInclude, toIncludeContext, true);
       if (toInclude.getOwnerDocument() != source.getOwnerDocument()) {
         toInclude = source.getOwnerDocument().importNode(toInclude, true);

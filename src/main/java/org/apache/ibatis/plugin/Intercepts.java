@@ -52,7 +52,7 @@ import java.lang.annotation.Target;
 public @interface Intercepts {
   /**
    * Returns method signatures to intercept.
-   *
+   * 拦截的方法签名数组
    * @return method signatures
    */
   Signature[] value();

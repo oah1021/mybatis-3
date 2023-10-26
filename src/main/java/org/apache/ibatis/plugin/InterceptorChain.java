@@ -15,6 +15,8 @@
  */
 package org.apache.ibatis.plugin;
 
+import org.apache.ibatis.parsing.XNode;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,8 +26,16 @@ import java.util.List;
  */
 public class InterceptorChain {
 
+  /**
+   * 拦截器数组
+   */
   private final List<Interceptor> interceptors = new ArrayList<>();
 
+  /**
+   * 应用所有拦截器到目标对象
+   * @param target 目标对象
+   * @return
+   */
   public Object pluginAll(Object target) {
     for (Interceptor interceptor : interceptors) {
       target = interceptor.plugin(target);
@@ -33,6 +43,11 @@ public class InterceptorChain {
     return target;
   }
 
+  /**
+   * 添加拦截器
+   * {@link org.apache.ibatis.builder.xml.XMLConfigBuilder#pluginElement(XNode)} 会调用
+   * @param interceptor
+   */
   public void addInterceptor(Interceptor interceptor) {
     interceptors.add(interceptor);
   }

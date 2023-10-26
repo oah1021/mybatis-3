@@ -31,8 +31,19 @@ import org.apache.ibatis.util.MapUtil;
  */
 public class Plugin implements InvocationHandler {
 
+  /**
+   * 目标对象
+   */
   private final Object target;
+  /**
+   * 拦截器
+   */
   private final Interceptor interceptor;
+  /**
+   * 拦截的方法映射
+   * key： 类
+   * value：方法集合
+   */
   private final Map<Class<?>, Set<Method>> signatureMap;
 
   private Plugin(Object target, Interceptor interceptor, Map<Class<?>, Set<Method>> signatureMap) {
@@ -41,23 +52,39 @@ public class Plugin implements InvocationHandler {
     this.signatureMap = signatureMap;
   }
 
+  /**
+   * 创建目标类的代理对象
+   * @param target
+   * @param interceptor
+   * @return
+   */
   public static Object wrap(Object target, Interceptor interceptor) {
+    // 获得拦截的方法映射
     Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
+    // 目标类
     Class<?> type = target.getClass();
+    // 目标类的接口集合
     Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
+    // 若有接口，则创建目标对象的 JDK Proxy 对象
+    // 因为JDK动态代理 只能代理接口
     if (interfaces.length > 0) {
       return Proxy.newProxyInstance(type.getClassLoader(), interfaces, new Plugin(target, interceptor, signatureMap));
     }
+    // 如果没有，则返回原始的目标对象
     return target;
   }
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+      // 获得目标方法
       Set<Method> methods = signatureMap.get(method.getDeclaringClass());
+      // 是否被拦截
       if (methods != null && methods.contains(method)) {
+        // 是，拦截处理该方法
         return interceptor.intercept(new Invocation(target, method, args));
       }
+      // 不是，调用原方法
       return method.invoke(target, args);
     } catch (Exception e) {
       throw ExceptionUtil.unwrapThrowable(e);
@@ -65,18 +92,23 @@ public class Plugin implements InvocationHandler {
   }
 
   private static Map<Class<?>, Set<Method>> getSignatureMap(Interceptor interceptor) {
+    // 获取拦截器上的 @Intercepts 对象
     Intercepts interceptsAnnotation = interceptor.getClass().getAnnotation(Intercepts.class);
     // issue #251
     if (interceptsAnnotation == null) {
       throw new PluginException(
           "No @Intercepts annotation was found in interceptor " + interceptor.getClass().getName());
     }
+    // 获取拦截的方法签名数组
     Signature[] sigs = interceptsAnnotation.value();
     Map<Class<?>, Set<Method>> signatureMap = new HashMap<>();
+    // 遍历需要拦截的方法签名数组
     for (Signature sig : sigs) {
       Set<Method> methods = MapUtil.computeIfAbsent(signatureMap, sig.type(), k -> new HashSet<>());
       try {
+        // 获取类中指定的方法
         Method method = sig.type().getMethod(sig.method(), sig.args());
+        // 添加到方法数组
         methods.add(method);
       } catch (NoSuchMethodException e) {
         throw new PluginException("Could not find method on " + sig.type() + " named " + sig.method() + ". Cause: " + e,
@@ -87,15 +119,19 @@ public class Plugin implements InvocationHandler {
   }
 
   private static Class<?>[] getAllInterfaces(Class<?> type, Map<Class<?>, Set<Method>> signatureMap) {
+    // 接口集合
     Set<Class<?>> interfaces = new HashSet<>();
     while (type != null) {
+      // 遍历类实现的接口，若在 signatureMap中则添加到 interfaces
       for (Class<?> c : type.getInterfaces()) {
         if (signatureMap.containsKey(c)) {
           interfaces.add(c);
         }
       }
+      // 获得父类
       type = type.getSuperclass();
     }
+    // 创建接口的数组
     return interfaces.toArray(new Class<?>[0]);
   }
 

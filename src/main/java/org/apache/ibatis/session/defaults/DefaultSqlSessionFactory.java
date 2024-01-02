@@ -87,14 +87,25 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
+  /**
+   * 通常一系列 openSession 方法最终都会调用本方法
+   * @param execType
+   * @param level
+   * @param autoCommit
+   * @return
+   */
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level,
       boolean autoCommit) {
     Transaction tx = null;
     try {
+      // Environment对象包含了数据源和事务的配置
       final Environment environment = configuration.getEnvironment();
+      // 从 Environment对象去获取事务工厂
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
       tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      // 表面上看我们是通过 sqlSession去执行sql，实际是通过 executor去执行，executor是对于 statement的封装
       final Executor executor = configuration.newExecutor(tx, execType);
+      // 这里创建了一个 DefaultSqlSession对象
       return new DefaultSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       closeTransaction(tx); // may have fetched a connection so lets call close()

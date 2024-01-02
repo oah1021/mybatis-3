@@ -769,6 +769,7 @@ public class Configuration {
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
+    // 将拦截器添加到目标对象
     return (Executor) interceptorChain.pluginAll(executor);
   }
 

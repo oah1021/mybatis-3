@@ -152,6 +152,7 @@ public class DefaultSqlSession implements SqlSession {
       // 获取 MappedStatement 对象
       MappedStatement ms = configuration.getMappedStatement(statement);
       dirty |= ms.isDirtySelect();
+      // crud 实际上还是交给 executor去处理
       return executor.query(ms, wrapCollection(parameter), rowBounds, handler);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

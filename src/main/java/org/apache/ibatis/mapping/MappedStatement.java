@@ -35,6 +35,9 @@ public final class MappedStatement {
 
   private String resource;
   private Configuration configuration;
+  /**
+   * Mapper接口的全限定名和方法名称 唯一
+   */
   private String id;
   private Integer fetchSize;
   private Integer timeout;
@@ -44,6 +47,9 @@ public final class MappedStatement {
   private Cache cache;
   private ParameterMap parameterMap;
   private List<ResultMap> resultMaps;
+  /**
+   * 配置了 flushCache="true" 则不会使用一级缓存
+   */
   private boolean flushCacheRequired;
   private boolean useCache;
   private boolean resultOrdered;

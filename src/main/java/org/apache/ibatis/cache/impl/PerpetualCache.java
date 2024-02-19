@@ -22,6 +22,8 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * 永久缓存</p>
+ * 因为它不主动删除缓存，但是会在事务提交或执行更新方法时清空缓存
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {

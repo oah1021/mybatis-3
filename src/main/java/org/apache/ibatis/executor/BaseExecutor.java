@@ -59,7 +59,15 @@ public abstract class BaseExecutor implements Executor {
   protected PerpetualCache localOutputParameterCache;
   protected Configuration configuration;
 
+  /**
+   * 用于跟踪查询的嵌套深度
+   * 进入查询方法之前，该值会进行递增，如果发生嵌套查询会继续递增（如：关联查询、子查询）
+   * 查询完成后会进行递减，表示嵌套查询已经结束
+   */
   protected int queryStack;
+  /**
+   * 执行器的状态
+   */
   private boolean closed;
 
   protected BaseExecutor(Configuration configuration, Transaction transaction) {
@@ -132,8 +140,11 @@ public abstract class BaseExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler)
       throws SQLException {
+    // 根据参数解析出要执行的SQL
     BoundSql boundSql = ms.getBoundSql(parameter);
+    // 创建缓存键
     CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
+    // 执行查询
     return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
   }
 
@@ -141,31 +152,37 @@ public abstract class BaseExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler,
       CacheKey key, BoundSql boundSql) throws SQLException {
+    // 向ErrorContext报告自己正在做查询
     ErrorContext.instance().resource(ms.getResource()).activity("executing a query").object(ms.getId());
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+    // 判断是否需要清空缓存
     if (queryStack == 0 && ms.isFlushCacheRequired()) {
       clearLocalCache();
     }
     List<E> list;
     try {
       queryStack++;
+      // 试图从一级缓存中获取数据
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
+        // 查询数据库
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {
       queryStack--;
     }
+    // 当 == 0时说明查询已经结束
     if (queryStack == 0) {
       for (DeferredLoad deferredLoad : deferredLoads) {
         deferredLoad.load();
       }
       // issue #601
       deferredLoads.clear();
+      // 如果缓存的作用范围是语句级别，进行清空缓存
       if (configuration.getLocalCacheScope() == LocalCacheScope.STATEMENT) {
         // issue #482
         clearLocalCache();
@@ -199,10 +216,14 @@ public abstract class BaseExecutor implements Executor {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+    // 实例化缓存键
     CacheKey cacheKey = new CacheKey();
+    // StatementId要一致，必须调用的是同一个Mapper的同一个方法
     cacheKey.update(ms.getId());
+    // 分页信息，查询的数据范围要一致
     cacheKey.update(rowBounds.getOffset());
     cacheKey.update(rowBounds.getLimit());
+    // 执行的SQL要一致，动态SQL的原因，SQL都不一致，肯定不能命中缓存
     cacheKey.update(boundSql.getSql());
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     TypeHandlerRegistry typeHandlerRegistry = ms.getConfiguration().getTypeHandlerRegistry();
@@ -229,6 +250,7 @@ public abstract class BaseExecutor implements Executor {
     }
     if (configuration.getEnvironment() != null) {
       // issue #176
+      // 校验运行环境，查询的数据源不同，也不能命中缓存。
       cacheKey.update(configuration.getEnvironment().getId());
     }
     return cacheKey;

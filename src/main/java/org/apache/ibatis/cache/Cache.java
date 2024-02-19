@@ -42,11 +42,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 public interface Cache {
 
   /**
+   * 获取缓存唯一标识符
    * @return The identifier of this cache
    */
   String getId();
 
   /**
+   * 添加缓存项
    * @param key
    *          Can be any object but usually it is a {@link CacheKey}
    * @param value
@@ -55,6 +57,7 @@ public interface Cache {
   void putObject(Object key, Object value);
 
   /**
+   * 根据缓存键获取缓存
    * @param key
    *          The key
    *
@@ -63,6 +66,7 @@ public interface Cache {
   Object getObject(Object key);
 
   /**
+   * 根据缓存键删除缓存
    * As of 3.3.0 this method is only called during a rollback for any previous value that was missing in the cache. This
    * lets any blocking cache to release the lock that may have previously put on the key. A blocking cache puts a lock
    * when a value is null and releases it when the value is back again. This way other threads will wait for the value
@@ -76,6 +80,7 @@ public interface Cache {
   Object removeObject(Object key);
 
   /**
+   * 清空缓存
    * Clears this cache instance.
    */
   void clear();

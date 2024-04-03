@@ -283,6 +283,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  //   <objectFactory type="org.apache.ibatis.builder.ExampleObjectFactory">
+  //     <property name="objectFactoryProperty" value="100"/>
+  //   </objectFactory>
   private void objectFactoryElement(XNode context) throws Exception {
     if (context != null) {
       // 获得objectFactory 的实现类
@@ -298,6 +301,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  //   <objectWrapperFactory type="org.apache.ibatis.builder.CustomObjectWrapperFactory" />
   private void objectWrapperFactoryElement(XNode context) throws Exception {
     if (context != null) {
       String type = context.getStringAttribute("type");

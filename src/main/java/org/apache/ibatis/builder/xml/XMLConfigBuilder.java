@@ -220,6 +220,12 @@ public class XMLConfigBuilder extends BaseBuilder {
    * 可以通过 XmlConfigBuilderTest 类中的 shouldSuccessfullyLoadXMLConfigFile测试方法来测试
    * @param parent
    */
+  //   <typeAliases>
+  //     <typeAlias alias="BlogAuthor" type="org.apache.ibatis.domain.blog.Author"/>
+  //     <typeAlias type="org.apache.ibatis.domain.blog.Blog"/>
+  //     <typeAlias type="org.apache.ibatis.domain.blog.Post"/>
+  //     <package name="org.apache.ibatis.domain.jpetstore"/>
+  //   </typeAliases>
   private void typeAliasesElement(XNode parent) {
     if (parent != null) {
       // 遍历子节点

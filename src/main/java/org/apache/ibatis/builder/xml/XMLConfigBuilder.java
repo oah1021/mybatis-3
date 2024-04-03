@@ -308,6 +308,10 @@ public class XMLConfigBuilder extends BaseBuilder {
    * @param context
    * @throws Exception
    */
+  //   <properties resource="org/apache/ibatis/builder/jdbc.properties">
+  //     <property name="prop1" value="aaaa"/>
+  //     <property name="jdbcTypeForNull" value="NULL" />
+  //   </properties>
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
       // 读取子标签们，为 Properties 对象
@@ -324,7 +328,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       // 如果 resource != null，
       if (resource != null) {
         // 读取 本地Properties 配置文件到 defaults 中
-        defaults.putAll(Resources.getResourceAsProperties(resource));
+          defaults.putAll(Resources.getResourceAsProperties(resource));
       } else if (url != null) {
         // 读取 远程Properties 配置文件到 defaults 中
         defaults.putAll(Resources.getUrlAsProperties(url));

@@ -259,6 +259,11 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  //   <plugins>
+  //     <plugin interceptor="org.apache.ibatis.builder.ExamplePlugin">
+  //       <property name="pluginProperty" value="100"/>
+  //     </plugin>
+  //   </plugins>
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
       // 遍历 plugins标签

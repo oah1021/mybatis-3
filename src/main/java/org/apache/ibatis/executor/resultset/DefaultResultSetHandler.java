@@ -653,9 +653,13 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   private Object createResultObject(ResultSetWrapper rsw, ResultMap resultMap, ResultLoaderMap lazyLoader,
       String columnPrefix) throws SQLException {
+    // 表示是否使用构造方法创建该结果对象，这里将该值充值
     this.useConstructorMappings = false; // reset previous mapping result
+    // 记录使用构造方法的参数类型的列表
     final List<Class<?>> constructorArgTypes = new ArrayList<>();
+    // 记录使用构造方法的参数的列表
     final List<Object> constructorArgs = new ArrayList<>();
+    // 创建映射的结果对象
     Object resultObject = createResultObject(rsw, resultMap, constructorArgTypes, constructorArgs, columnPrefix);
     if (resultObject != null && !hasTypeHandlerForResultObject(rsw, resultMap.getType())) {
       final List<ResultMapping> propertyMappings = resultMap.getPropertyResultMappings();
